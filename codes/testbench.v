@@ -79,6 +79,38 @@ initial begin
         CPU.Registers.register[i] = 32'b0;
     end
     // [RegisterInitialization] DO NOT REMOVE THIS FLAG !!!
+
+    // TODO: initialize your pipeline registers
+    CPU.IF_ID.Pc_o = 0;
+    CPU.IF_ID.Instruction_o = 0;
+
+    CPU.ID_EX.RegWrite_o = 0;
+    CPU.ID_EX.MemtoReg_o = 0;
+    CPU.ID_EX.MemRead_o = 0;
+    CPU.ID_EX.MemWrite_o = 0;
+    CPU.ID_EX.ALUOp_o = 0;
+    CPU.ID_EX.ALUSrc_o = 0;
+    CPU.ID_EX.Read_Data_1_o = 0;
+    CPU.ID_EX.Read_Data_2_o = 0;
+    CPU.ID_EX.Imm_Gen_o = 0;
+    CPU.ID_EX.Funct_o = 0;
+    CPU.ID_EX.Read_Register_1_o = 0;
+    CPU.ID_EX.Read_Register_2_o = 0;
+    CPU.ID_EX.Write_Register_o = 0;
+
+    CPU.EX_MEM.RegWrite_o = 0;
+    CPU.EX_MEM.MemtoReg_o = 0;
+    CPU.EX_MEM.MemRead_o = 0;
+    CPU.EX_MEM.MemWrite_o = 0;
+    CPU.EX_MEM.ALU_Result_o = 0;
+    CPU.EX_MEM.Read_Data_2_o = 0;
+    CPU.EX_MEM.Write_Register_o = 0;
+
+    CPU.MEM_WB.RegWrite_o = 0;
+    CPU.MEM_WB.MemtoReg_o = 0;
+    CPU.MEM_WB.ALU_Result_o = 0;
+    CPU.MEM_WB.Read_Data_o = 0;
+    CPU.MEM_WB.Write_Register_o = 0;
     
     // Load instructions into instruction memory
     // Make sure you change back to "instruction.txt" before submission
