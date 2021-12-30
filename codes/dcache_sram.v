@@ -47,23 +47,25 @@ always@(posedge clk_i or posedge rst_i) begin
     end
     if (enable_i && write_i) begin
         // TODO: Handle your write of 2-way associative cache + LRU here
-        if (tag[addr_i][0][24]) begin
-            data[addr_i][1] = data[i];
-            tag[addr_i][0][24] = 1'b0;
-            tag[addr_i][1][24] = 1'b1;
+        if (tag[addr_i][0][22:0] === tag_i[22:0]) begin
+            data[addr_i][0] <= data_i;
+            tag[addr_i][0][23] <= 1'b1;
+            tag[addr_i][0][24] <= 1'b0;
+            tag[addr_i][1][24] <= 1'b1;
         end
         else begin
-            data[addr_i][0] = data[i];
-            tag[addr_i][0][24] = 1'b1;
-            tag[addr_i][1][24] = 1'b0;
+            data[addr_i][1] <= data_i;
+            tag[addr_i][1][23] <= 1'b1;
+            tag[addr_i][0][24] <= 1'b1;
+            tag[addr_i][1][24] <= 1'b0;
         end
     end
 end
 
 // Read Data      
 // TODO: tag_o=? data_o=? hit_o=?
-assign tag_o = tag[addr_i][0][24] ? tag[addr_i][0] : tag[addr_i][1];
-assign data_o = tag[addr_i][0][24] ? data[addr_i][0] : data[addr_i][1];
+assign tag_o = (hit_o && tag[addr_i][0][22:0] === tag_i[22:0]) ? tag[addr_i][0] : tag[addr_i][1];
+assign data_o = (hit_o && tag[addr_i][0][22:0] === tag_i[22:0]) ? data[addr_i][0] : data[addr_i][1];
 assign hit_o = (tag[addr_i][0] === tag_i) || (tag[addr_i][1] === tag_i);
 
 endmodule

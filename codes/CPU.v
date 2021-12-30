@@ -2,7 +2,14 @@ module CPU
 (
     clk_i, 
     rst_i,
-    start_i
+    start_i,
+
+    mem_data_i, 
+    mem_ack_i,     
+    mem_data_o, 
+    mem_addr_o,     
+    mem_enable_o, 
+    mem_write_o
 );
 
 integer counter;
@@ -19,6 +26,14 @@ end
 input clk_i;
 input rst_i;
 input start_i;
+
+input mem_data_i;
+input mem_ack_i;
+
+output mem_data_o;
+output mem_addr_o;
+output mem_enable_o;
+output mem_write_o;
 
 // wires in IF stage
 wire [31:0] Adder_IF, Mux21_IF, Pc_IF, Instruction_IF;
@@ -41,7 +56,7 @@ wire [31:0] Read_Data_1_EX, Read_Data_2_EX, Imm_Gen_EX;
 wire [31:0] Mux21_A_1_EX, Mux21_B_1_EX, Mux21_A_2_EX, Mux21_B_2_EX, Mux21_C_EX, ALU_Result_EX;
 
 // wires in MEM stage
-wire RegWrite_MEM, MemtoReg_MEM, MemRead_MEM, MemWrite_MEM;
+wire RegWrite_MEM, MemtoReg_MEM, MemRead_MEM, MemWrite_MEM, MemStall_MEM;
 wire [4:0] Write_Register_MEM;
 wire [31:0] ALU_Result_MEM, Write_Data_MEM, Read_Data_MEM;
 
@@ -267,14 +282,31 @@ MUX32 MUX21_C_EX(
     .Data_o (Mux21_C_EX)
 );
 
-// modules in MEM stage
-Data_Memory Data_Memory(
-    .clk_i (clk_i), 
-    .addr_i (ALU_Result_MEM), 
-    .MemRead_i (MemRead_MEM),
-    .MemWrite_i (MemWrite_MEM),
-    .data_i (Write_Data_MEM),
-    .data_o (Read_Data_MEM)
+// // modules in MEM stage
+// Data_Memory Data_Memory(
+//     .clk_i (clk_i), 
+//     .addr_i (ALU_Result_MEM), 
+//     .MemRead_i (MemRead_MEM),
+//     .MemWrite_i (MemWrite_MEM),
+//     .data_i (Write_Data_MEM),
+//     .data_o (Read_Data_MEM)
+// );
+
+dcache_controller dcache_controller(
+    .clk_i(clk_i), 
+    .rst_i(rst_i),
+    .mem_data_i, 
+    .mem_ack_i,     
+    .mem_data_o, 
+    .mem_addr_o,     
+    .mem_enable_o, 
+    .mem_write_o, 
+    .cpu_data_i(Write_Data_MEM), 
+    .cpu_addr_i,     
+    .cpu_MemRead_i(MemRead_MEM), 
+    .cpu_MemWrite_i(MemWrite_MEM), 
+    .cpu_data_o(Read_Data_MEM), 
+    .cpu_stall_o(MemStall_MEM)
 );
 
 // modules in WB stage
