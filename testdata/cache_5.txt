@@ -3,6 +3,6 @@ Cycle:          18, Write Hit , Address: 00000004, Write Data: feeeefff
 Cycle:          19, Write Miss, Address: 00000200, Write Data: 00000000
 Cycle:          33, Read Hit  , Address: 00000204, Read Data : fedcba98
 Cycle:          34, Write Miss, Address: 00000400, Write Data: 00000000 (Write Back!)
-Cycle:          58, Read Hit  , Address: 00000404, Read Data : 0cc00dd0
+Cycle:          58, Read Hit  , Address: 00000404, Read Data : c00cd00d
 Cycle:          59, Read Miss , Address: 00000600, Read Data : 00000000 (Write Back!)
-Cycle:          84, Write Hit , Address: 00000604, Write Data: fe00ef00
+Cycle:          84, Write Hit , Address: 00000604, Write Data: 00000000
