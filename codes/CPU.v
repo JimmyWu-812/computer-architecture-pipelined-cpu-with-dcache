@@ -27,11 +27,11 @@ input clk_i;
 input rst_i;
 input start_i;
 
-input mem_data_i;
+input [255:0] mem_data_i;
 input mem_ack_i;
 
-output mem_data_o;
-output mem_addr_o;
+output [255:0] mem_data_o;
+output [31:0] mem_addr_o;
 output mem_enable_o;
 output mem_write_o;
 
@@ -67,19 +67,19 @@ wire [31:0] ALU_Result_WB, Read_Data_WB, Mux21_WB;
 
 // initial conditions for wires
 wire PCWrite_ID_module, Flush_ID_module, Stall_ID_module;
-assign Stall_ID = (counter === 1 || counter === 2) ? 0 : Stall_ID_module;
-assign PCWrite_ID = (counter === 1 || counter === 2) ? 1 : PCWrite_ID_module;
-assign Flush_ID = (counter === 1) ? 0 : Flush_ID_module;
+assign Stall_ID = (counter === 1/* || counter === 2*/) ? 0 : Stall_ID_module;
+assign PCWrite_ID = (counter === 1/* || counter === 2*/) ? 1 : PCWrite_ID_module;
+assign Flush_ID = /*(counter === 1) ? 0 : */Flush_ID_module;
 
 wire NoOp_ID_module;
 wire [4:0] Write_Register_WB_module;
 wire [31:0] Mux21_WB_module;
-assign NoOp_ID = (counter === 1 || Instruction_ID === 0) ? 1 : NoOp_ID_module;
-assign Write_Register_WB = (counter === 1 || counter === 2 || counter === 3 || counter === 4) ? 0 : Write_Register_WB_module;
-assign Mux21_WB = (counter === 1 || counter === 2 || counter === 3 || counter === 4) ? Read_Data_1_ID : Mux21_WB_module;
+assign NoOp_ID = (/*counter === 1 || */Instruction_ID === 0) ? 1 : NoOp_ID_module;
+assign Write_Register_WB = (counter === 1 || counter === 2 || counter === 3/* || counter === 4*/) ? 0 : Write_Register_WB_module;
+assign Mux21_WB = (counter === 1 || counter === 2 || counter === 3/* || counter === 4*/) ? Read_Data_1_ID : Mux21_WB_module;
 
 wire RegWrite_MEM_module;
-assign RegWrite_MEM = (counter === 1 || counter === 2 || counter === 3) ? 0 : RegWrite_MEM_module;
+assign RegWrite_MEM = (counter === 1 || counter === 2/* || counter === 3*/) ? 0 : RegWrite_MEM_module;
 
 // pipeline Registers
 IF_ID IF_ID (
@@ -88,6 +88,7 @@ IF_ID IF_ID (
     .Flush_i (Flush_ID),
     .Stall_i (Stall_ID),
     .Instruction_i (Instruction_IF),
+    .Mem_Stall_i(MemStall_MEM),
     .Pc_o (Pc_ID),
     .Instruction_o (Instruction_ID)
 );
@@ -107,6 +108,7 @@ ID_EX ID_EX (
     .Read_Register_1_i (Instruction_ID[19:15]),
     .Read_Register_2_i (Instruction_ID[24:20]),
     .Write_Register_i (Instruction_ID[11:7]),
+    .Mem_Stall_i(MemStall_MEM),
     .RegWrite_o (RegWrite_EX),
     .MemtoReg_o (MemtoReg_EX),
     .MemRead_o (MemRead_EX),
@@ -131,6 +133,7 @@ EX_MEM EX_MEM (
     .ALU_Result_i (ALU_Result_EX),
     .Read_Data_2_i (Mux21_B_2_EX),
     .Write_Register_i (Write_Register_EX),
+    .Mem_Stall_i(MemStall_MEM),
     .RegWrite_o (RegWrite_MEM_module),
     .MemtoReg_o (MemtoReg_MEM),
     .MemRead_o (MemRead_MEM),
@@ -147,6 +150,7 @@ MEM_WB MEM_WB (
     .ALU_Result_i (ALU_Result_MEM),
     .Read_Data_i (Read_Data_MEM),
     .Write_Register_i (Write_Register_MEM),
+    .Mem_Stall_i(MemStall_MEM),
     .RegWrite_o (RegWrite_WB),
     .MemtoReg_o (MemtoReg_WB),
     .ALU_Result_o (ALU_Result_WB),
@@ -168,6 +172,7 @@ PC PC(
     .clk_i      (clk_i),
     .rst_i      (rst_i),
     .start_i    (start_i),
+    .stall_i    (MemStall_MEM),
     .PCWrite_i  (PCWrite_ID),
     .pc_i       (Mux21_IF),
     .pc_o       (Pc_IF)
@@ -282,7 +287,7 @@ MUX32 MUX21_C_EX(
     .Data_o (Mux21_C_EX)
 );
 
-// // modules in MEM stage
+// modules in MEM stage
 // Data_Memory Data_Memory(
 //     .clk_i (clk_i), 
 //     .addr_i (ALU_Result_MEM), 
@@ -292,21 +297,21 @@ MUX32 MUX21_C_EX(
 //     .data_o (Read_Data_MEM)
 // );
 
-dcache_controller dcache_controller(
-    .clk_i(clk_i), 
-    .rst_i(rst_i),
-    .mem_data_i, 
-    .mem_ack_i,     
-    .mem_data_o, 
-    .mem_addr_o,     
-    .mem_enable_o, 
-    .mem_write_o, 
-    .cpu_data_i(Write_Data_MEM), 
-    .cpu_addr_i,     
-    .cpu_MemRead_i(MemRead_MEM), 
-    .cpu_MemWrite_i(MemWrite_MEM), 
-    .cpu_data_o(Read_Data_MEM), 
-    .cpu_stall_o(MemStall_MEM)
+dcache_controller dcache(
+    .clk_i (clk_i), 
+    .rst_i (rst_i),
+    .mem_data_i (mem_data_i), 
+    .mem_ack_i (mem_ack_i),     
+    .mem_data_o (mem_data_o), 
+    .mem_addr_o (mem_addr_o),     
+    .mem_enable_o (mem_enable_o), 
+    .mem_write_o (mem_write_o), 
+    .cpu_data_i (Write_Data_MEM), 
+    .cpu_addr_i (ALU_Result_MEM),     
+    .cpu_MemRead_i (MemRead_MEM), 
+    .cpu_MemWrite_i (MemWrite_MEM), 
+    .cpu_data_o (Read_Data_MEM), 
+    .cpu_stall_o (MemStall_MEM)
 );
 
 // modules in WB stage

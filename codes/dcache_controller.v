@@ -122,7 +122,7 @@ assign r_hit_data = sram_cache_data;
 // read data :  256-bit to 32-bit
 always@(cpu_offset or r_hit_data) begin
     // TODO: add your code here! (cpu_data=...?)
-    cpu_data <= r_hit_data[cpu_offset];
+    cpu_data <= r_hit_data[(cpu_offset*8)+:32];
 end
 
 
@@ -130,6 +130,7 @@ end
 always@(cpu_offset or r_hit_data or cpu_data_i) begin
     // TODO: add your code here! (w_hit_data=...?)
     w_hit_data <= r_hit_data;
+    w_hit_data[(cpu_offset*8)+:32] <= cpu_data_i;
 end
 
 
@@ -146,6 +147,7 @@ always@(posedge clk_i or posedge rst_i) begin
         case(state)        
             STATE_IDLE: begin
                 if(cpu_req && !hit) begin      // wait for request
+                    mem_enable <= 1'b1;
                     state <= STATE_MISS;
                 end
                 else begin
@@ -155,20 +157,19 @@ always@(posedge clk_i or posedge rst_i) begin
             STATE_MISS: begin
                 if(sram_dirty) begin          // write back if dirty
                     // TODO: add your code here! 
-                    mem_enable  <= 1'b1;
                     mem_write <= 1'b1;
+                    write_back <= 1'b1;
                     state <= STATE_WRITEBACK;
                 end
                 else begin                    // write allocate: write miss = read miss + write hit; read miss = read miss + read hit
                     // TODO: add your code here! 
-                    mem_enable  <= 1'b1;
                     state <= STATE_READMISS;
                 end
             end
             STATE_READMISS: begin
                 if(mem_ack_i) begin            // wait for data memory acknowledge
                     // TODO: add your code here! 
-                    mem_enable  <= 1'b0;
+                    mem_enable <= 1'b0;
                     cache_write <= 1'b1;
                     state <= STATE_READMISSOK;
                 end
@@ -184,7 +185,7 @@ always@(posedge clk_i or posedge rst_i) begin
             STATE_WRITEBACK: begin
                 if(mem_ack_i) begin            // wait for data memory acknowledge
                     // TODO: add your code here! 
-                    mem_enable  <= 1'b0;
+                    mem_write <= 1'b0;
                     write_back <= 1'b0;
                     state <= STATE_READMISS;
                 end
