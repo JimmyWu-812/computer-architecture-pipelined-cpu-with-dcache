@@ -51,7 +51,7 @@ always@(posedge clk_i or posedge rst_i) begin
             data[addr_i][1] <= data_i;
             tag[addr_i][1] <= tag_i;
         end
-        else begin // (write hit && tag matches LRU block(0)) || (read miss)
+        else begin // (write hit && tag matches LRU block(0)) || (read miss [and read from memory])
             data[addr_i][0] <= data[addr_i][1];
             tag[addr_i][0] <= tag[addr_i][1];
             data[addr_i][1] <= data_i;

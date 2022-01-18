@@ -1,0 +1,22 @@
+// read hit, load-use hazard, write hit
+// read miss (with and without write-back), write miss (with and without write-back)
+
+// index=0x00, tag=0x0 (block A)
+000000000000_00000_010_01111_0000011  // lw x15,0x0(x0) // Read miss
+0100000_00100_01111_101_01111_0010011 // srai x15, x15, 4
+0000000_01111_00000_010_00100_0100011 // sw x15, 0x4(x0) // Write hit
+
+// index=0x00, tag=0x1 (block B)
+0010000_01110_00000_010_00000_0100011 // sw x14, 0x200(x0) // Write miss
+0100000_00100_01110_101_01110_0010011 // srai x14, x14, 4
+001000000100_00000_010_01110_0000011  // lw x14,0x204(x0) // Read hit
+
+// index=0x00, tag=0x10
+0100000_01100_00000_010_00000_0100011 // sw x12, 0x400(x0) // Write miss (Write back block A)
+0100000_00100_01100_101_01100_0010011 // srai x12, x12, 4
+010000000100_00000_010_01100_0000011  // lw x12,0x404(x0) // Read hit
+
+// index=0x00, tag=0x11
+011000000000_00000_010_01011_0000011  // lw x11,0x600(x0) // Read miss (Write back block B)
+0100000_00100_01011_101_01011_0010011 // srai x11, x11, 4
+0110000_01011_00000_010_00100_0100011 // sw x11, 0x604(x0) // Write hit
